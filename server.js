@@ -6,7 +6,7 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 
-
+// 📍 Geocoding (OpenWeatherMap)
 app.get('/api/geocode', async (req, res) => {
   const { q } = req.query;
   try {
@@ -24,6 +24,7 @@ app.get('/api/geocode', async (req, res) => {
   }
 });
 
+// 📍 (Optional) Nearby station lookup (Meteostat - if still used)
 app.get('/api/station', async (req, res) => {
   const { lat, lon } = req.query;
   try {
@@ -41,6 +42,7 @@ app.get('/api/station', async (req, res) => {
   }
 });
 
+// 📅 Visual Crossing daily pressure data
 app.get('/api/daily', async (req, res) => {
   const { location, start, end } = req.query;
 
@@ -63,10 +65,14 @@ app.get('/api/daily', async (req, res) => {
     res.json({ data });
   } catch (err) {
     console.error("🔥 /api/daily error:", err.response?.data || err.message);
-    res.status(500).json({ error: "Visual Crossing daily fetch failed" });
+    res.status(500).json({
+      error: "Visual Crossing daily fetch failed",
+      details: err.response?.data || err.message
+    });
   }
 });
 
-
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+
