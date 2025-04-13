@@ -6,23 +6,26 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 
-app.get('/api/weather', async (req, res) => {
-  const { lat, lon } = req.query;
+app.get('/api/daily', async (req, res) => {
+  const { station, start, end } = req.query;
   try {
-    const response = await axios.get('https://api.openweathermap.org/data/2.5/weather', {
-      params: {
-        lat,
-        lon,
-        appid: process.env.OPENWEATHER_KEY,
-        units: 'metric'
+    const response = await axios.get('https://meteostat.p.rapidapi.com/stations/daily', {
+      params: { station, start, end },
+      headers: {
+        'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+        'X-RapidAPI-Host': 'meteostat.p.rapidapi.com'
       }
     });
     res.json(response.data);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: 'Weather API error' });
+    console.error("🔥 /api/daily error:", err.response?.data || err.message);
+    res.status(500).json({
+      error: "Daily data fetch error",
+      details: err.response?.data || err.message
+    });
   }
 });
+
 
 app.get('/api/geocode', async (req, res) => {
   const { q } = req.query;
