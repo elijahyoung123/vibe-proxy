@@ -62,21 +62,31 @@ app.get('/api/station', async (req, res) => {
 });
 
 app.get('/api/daily', async (req, res) => {
-  const { station, start, end } = req.query;
+  const { location, start, end } = req.query;
+
   try {
-    const response = await axios.get('https://meteostat.p.rapidapi.com/stations/daily', {
-      params: { station, start, end },
-      headers: {
-        'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
-        'X-RapidAPI-Host': 'meteostat.p.rapidapi.com'
+    const response = await axios.get(`https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${encodeURIComponent(location)}/${start}/${end}`, {
+      params: {
+        unitGroup: 'metric',
+        key: process.env.VC_API_KEY,
+        include: 'days',
+        elements: 'datetime,pressure',
+        contentType: 'json'
       }
     });
-    res.json(response.data);
+
+    const data = response.data.days.map(day => ({
+      date: day.datetime,
+      pres: day.pressure
+    }));
+
+    res.json({ data });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: 'Daily data fetch error' });
+    console.error("🔥 /api/daily error:", err.response?.data || err.message);
+    res.status(500).json({ error: "Visual Crossing daily fetch failed" });
   }
 });
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
